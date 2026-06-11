@@ -4,7 +4,7 @@ local sidebar_bufnr = nil
 local sidebar_winid = nil
 local source_bufnr = nil
 
-local SEPARATOR = ""
+local SEPARATOR = "─"
 
 local function get_annotations()
 	if not source_bufnr or not vim.api.nvim_buf_is_valid(source_bufnr) then
@@ -14,12 +14,20 @@ local function get_annotations()
 	return require("annotations.storage").get_annotations_for_file(filepath)
 end
 
+local function find_sidebar_buffer()
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_name(buf) == "annotations://sidebar" then
+			return buf
+		end
+	end
+	return nil
+end
+
 function M.toggle(dir)
 	if sidebar_winid and vim.api.nvim_win_is_valid(sidebar_winid) then
 		M.close()
 		return
 	end
-	source_bufnr = vim.api.nvim_get_current_buf()
 	M.open(dir)
 end
 
@@ -29,12 +37,40 @@ function M.open(dir)
 		dir = require("annotations").options.sidebar_position
 	end
 
-	if not source_bufnr or not vim.api.nvim_buf_is_valid(source_bufnr) then
-		source_bufnr = vim.api.nvim_get_current_buf()
+	source_bufnr = vim.api.nvim_get_current_buf()
+
+	if not (sidebar_bufnr and vim.api.nvim_buf_is_valid(sidebar_bufnr)) then
+		sidebar_bufnr = find_sidebar_buffer()
 	end
 
-	sidebar_bufnr = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_name(sidebar_bufnr, "annotations://sidebar")
+	if not sidebar_bufnr then
+		sidebar_bufnr = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(sidebar_bufnr, "annotations://sidebar")
+
+		vim.b[sidebar_bufnr].source_buffer = source_bufnr
+
+		vim.api.nvim_buf_set_keymap(sidebar_bufnr, "n", "<CR>", "", {
+			callback = M.jump,
+			noremap = true,
+			silent = true,
+		})
+
+		vim.api.nvim_buf_set_keymap(sidebar_bufnr, "n", "q", "", {
+			callback = M.close,
+			noremap = true,
+			silent = true,
+		})
+
+		vim.api.nvim_create_autocmd("BufWipeout", {
+			buffer = sidebar_bufnr,
+			once = true,
+			callback = function()
+				sidebar_bufnr = nil
+				sidebar_winid = nil
+				source_bufnr = nil
+			end,
+		})
+	end
 
 	if dir == "right" then
 		vim.cmd("noau botright vertical 1split")
@@ -53,30 +89,6 @@ function M.open(dir)
 	vim.wo[sidebar_winid].spell = false
 	vim.api.nvim_win_set_width(sidebar_winid, 40)
 
-	vim.b[sidebar_bufnr].source_buffer = source_bufnr
-
-	vim.api.nvim_buf_set_keymap(sidebar_bufnr, "n", "<CR>", "", {
-		callback = M.jump,
-		noremap = true,
-		silent = true,
-	})
-
-	vim.api.nvim_buf_set_keymap(sidebar_bufnr, "n", "q", "", {
-		callback = M.close,
-		noremap = true,
-		silent = true,
-	})
-
-	vim.api.nvim_create_autocmd("BufWipeout", {
-		buffer = sidebar_bufnr,
-		once = true,
-		callback = function()
-			sidebar_bufnr = nil
-			sidebar_winid = nil
-			source_bufnr = nil
-		end,
-	})
-
 	M.render()
 end
 
@@ -84,12 +96,7 @@ function M.close()
 	if sidebar_winid and vim.api.nvim_win_is_valid(sidebar_winid) then
 		vim.api.nvim_win_close(sidebar_winid, true)
 	end
-	if sidebar_bufnr and vim.api.nvim_buf_is_valid(sidebar_bufnr) then
-		vim.api.nvim_buf_delete(sidebar_bufnr, { force = true })
-	end
-	sidebar_bufnr = nil
 	sidebar_winid = nil
-	source_bufnr = nil
 end
 
 function M.render()
