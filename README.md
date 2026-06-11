@@ -15,7 +15,28 @@ Annotate visually selected text in Neovim. Annotations persist across sessions v
 - [x] clear all annotations for the current file (`AnnotationsClear`).
 - [ ] `nvim-mini/mini.ai` integration, "annotation" text object.
 
+## setup
+
+```lua
+
+{
+    'celsobenedetti/annotations.nvim',
+    config = true
+    keys = {
+        { '<leader>h', ':<c-u>AnnotationsAdd<CR>', mode = 'x' },
+    },
+}
+```
+
+## usage
+
+- `AnnotationsAdd` to add an annotation to the current buffer.
+- `AnnotationsToggle` to toggle the visibility of annotations.
+- `AnnotationsClear` to clear all annotations for the current buffer.
+- `AnnotationsQuickfix` to send all annotations for the current buffer to the quickfix list.
+- `AnnotationsSidebar` to open a sidebar listing all annotations for the current buffer.
+
 ## references
 
 - [pocco81/high-str.nvim](https://github.com/pocco81/high-str.nvim), essentially copied the highlight implementation from there.
-- [stevearc/aerial.nvim](https://github.com/stevearc/aerial.nvim), based the sidebar.
+- [stevearc/aerial.nvim](https://github.com/stevearc/aerial.nvim), reference for the sidebar implementation.
