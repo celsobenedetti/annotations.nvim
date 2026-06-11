@@ -23,7 +23,7 @@ local function ranges_overlap(a, b)
 end
 
 local function reapply_all(bufnr, annotations)
-	vim.api.nvim_buf_clear_namespace(bufnr, 0, 0, -1)
+	vim.api.nvim_buf_clear_namespace(bufnr, highlight.get_namespace(), 0, -1)
 	for _, ann in ipairs(annotations) do
 		highlight.apply_highlight(bufnr, ann.hi_index, ann.beg_line, ann.beg_col, ann.end_line, ann.end_col)
 	end
@@ -148,6 +148,25 @@ function M.sidebar(dir)
 	require("annotations.sidebar").toggle(dir)
 end
 
+function M.toggle_highlights()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local ns = highlight.get_namespace()
+
+	if vim.b[bufnr].annotations_hidden then
+		vim.b[bufnr].annotations_hidden = nil
+		M.restore()
+		vim.notify("Annotations: highlights visible")
+	else
+		vim.b[bufnr].annotations_hidden = true
+		vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+		vim.notify("Annotations: highlights hidden")
+	end
+end
+
+function M.restore_manual()
+	M.restore()
+end
+
 function M.quickfix()
 	local filepath = vim.fn.expand("%:p")
 	local annotations = storage.get_annotations_for_file(filepath)
@@ -169,7 +188,7 @@ end
 function M.clear()
 	local filepath = vim.fn.expand("%:p")
 
-	vim.api.nvim_buf_clear_namespace(0, 0, 0, -1)
+	vim.api.nvim_buf_clear_namespace(0, highlight.get_namespace(), 0, -1)
 	storage.clear_annotations_for_file(filepath)
 	pcall(function()
 		require("annotations.sidebar").refresh()
@@ -202,6 +221,8 @@ function M.restore()
 			removed = removed + 1
 		end
 	end
+
+	vim.b[bufnr].annotations_hidden = nil
 
 	if removed > 0 then
 		storage.save_annotations_for_file(filepath, valid)

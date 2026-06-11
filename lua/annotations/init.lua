@@ -59,6 +59,14 @@ local function setup_commands()
 			return { "left", "right" }
 		end,
 	})
+
+	vim.api.nvim_create_user_command("AnnotationsRestore", function()
+		require("annotations.main").restore_manual()
+	end, { force = true })
+
+	vim.api.nvim_create_user_command("AnnotationsToggle", function()
+		require("annotations.main").toggle_highlights()
+	end, { force = true })
 end
 
 function M.setup(opts)

@@ -1,5 +1,11 @@
 local M = {}
 
+local ns = vim.api.nvim_create_namespace("annotations")
+
+function M.get_namespace()
+	return ns
+end
+
 local function get_cols(num)
 	return vim.api.nvim_eval("col([" .. num .. ", '$'])")
 end
@@ -34,31 +40,37 @@ function M.apply_highlight(bufnr, hi_index, beg_line, beg_col, end_line, end_col
 	local hi_group = "AnnotationGroup" .. hi_index
 
 	if beg_line == end_line then
-		vim.api.nvim_buf_add_highlight(bufnr, 0, hi_group, beg_line - 1, beg_col - 1, end_col)
+		vim.api.nvim_buf_add_highlight(bufnr, ns, hi_group, beg_line - 1, beg_col - 1, end_col)
 	else
-		vim.api.nvim_buf_add_highlight(bufnr, 0, hi_group, beg_line - 1, beg_col - 1, get_cols(beg_line) - 1)
+		vim.api.nvim_buf_add_highlight(bufnr, ns, hi_group, beg_line - 1, beg_col - 1, get_cols(beg_line) - 1)
 
 		for line = beg_line + 1, end_line - 1 do
-			vim.api.nvim_buf_add_highlight(bufnr, 0, hi_group, line - 1, 0, get_cols(line) - 1)
+			vim.api.nvim_buf_add_highlight(bufnr, ns, hi_group, line - 1, 0, get_cols(line) - 1)
 		end
 
-		vim.api.nvim_buf_add_highlight(bufnr, 0, hi_group, end_line - 1, 0, end_col)
+		vim.api.nvim_buf_add_highlight(bufnr, ns, hi_group, end_line - 1, 0, end_col)
 	end
 end
 
 function M.get_text(bufnr, beg_line, beg_col, end_line, end_col)
 	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	if beg_line > line_count then return "" end
+	if beg_line > line_count then
+		return ""
+	end
 
 	local actual_end = math.min(end_line, line_count)
 	local lines = vim.api.nvim_buf_get_lines(bufnr, beg_line - 1, actual_end, false)
-	if #lines == 0 then return "" end
+	if #lines == 0 then
+		return ""
+	end
 
 	if beg_line == end_line then
 		local line = lines[1]
 		local start = math.max(1, beg_col)
 		local finish = math.min(end_col, #line)
-		if start > finish then return "" end
+		if start > finish then
+			return ""
+		end
 		return line:sub(start, finish)
 	end
 
