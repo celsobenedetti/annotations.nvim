@@ -58,6 +58,22 @@ function M.add(hi_index)
 		end
 	end
 
+	for i = #annotations, 1, -1 do
+		local ann = annotations[i]
+		if
+			ann.beg_line <= beg_line
+			and ann.end_line >= end_line
+			and (ann.beg_line < beg_line or ann.beg_col <= beg_col)
+			and (ann.end_line > end_line or ann.end_col >= end_col)
+			and not (ann.beg_line == beg_line and ann.beg_col == beg_col and ann.end_line == end_line and ann.end_col == end_col)
+		then
+			storage.remove_annotation_by_position(filepath, ann.beg_line, ann.beg_col, ann.end_line, ann.end_col)
+			reapply_all(0, storage.get_annotations_for_file(filepath))
+			vim.notify("Annotations: removed containing annotation")
+			return
+		end
+	end
+
 	local overlapping = {}
 	local non_overlapping = {}
 	for _, ann in ipairs(annotations) do
