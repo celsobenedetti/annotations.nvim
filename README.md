@@ -14,7 +14,7 @@ This plugin does two things:
 - [x] remove existing annotations if visual is wholy contained within it.
 - [x] send annotations to quickfix list.
 - [ ] restore existing highlights when opening a file.
-- [ ] show annotations in sidebar
+- [x] show annotations in sidebar
 - [ ] `nvim-mini/mini.ai` integration, "annotation" text object.
 
 ## references

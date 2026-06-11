@@ -2,6 +2,7 @@ local M = {}
 
 M.options = {
 	storage_path = nil,
+	sidebar_position = "left",
 	highlight_colors = {
 		color_0 = { "#f4d88c", "smart" },
 		color_1 = { "#9fd8ff", "smart" },

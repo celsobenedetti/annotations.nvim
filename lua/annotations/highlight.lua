@@ -48,40 +48,34 @@ end
 
 function M.get_text(bufnr, beg_line, beg_col, end_line, end_col)
 	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	if beg_line > line_count or end_line > line_count then
-		return nil
-	end
+	if beg_line > line_count then return "" end
 
-	local lines = vim.api.nvim_buf_get_lines(bufnr, beg_line - 1, end_line, false)
-	if #lines == 0 then
-		return nil
-	end
+	local actual_end = math.min(end_line, line_count)
+	local lines = vim.api.nvim_buf_get_lines(bufnr, beg_line - 1, actual_end, false)
+	if #lines == 0 then return "" end
 
 	if beg_line == end_line then
 		local line = lines[1]
-		if beg_col > #line or end_col > #line then
-			return nil
-		end
-		return line:sub(beg_col, end_col)
-	end
-
-	local first = lines[1]
-	if beg_col > #first then
-		return nil
+		local start = math.max(1, beg_col)
+		local finish = math.min(end_col, #line)
+		if start > finish then return "" end
+		return line:sub(start, finish)
 	end
 
 	local parts = {}
-	parts[#parts + 1] = first:sub(beg_col)
+	local first = lines[1]
+	table.insert(parts, first:sub(math.max(1, beg_col)))
 
 	for i = 2, #lines - 1 do
-		parts[#parts + 1] = lines[i]
+		table.insert(parts, lines[i])
 	end
 
 	local last = lines[#lines]
-	if end_col > #last then
-		return nil
+	local finish = end_col
+	if finish == 0 or finish > #last then
+		finish = #last
 	end
-	parts[#parts + 1] = last:sub(1, end_col)
+	table.insert(parts, last:sub(1, finish))
 
 	return table.concat(parts, "\n")
 end

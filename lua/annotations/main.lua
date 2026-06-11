@@ -53,6 +53,7 @@ function M.add(hi_index)
 		then
 			storage.remove_annotation_by_position(filepath, beg_line, beg_col, end_line, end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
+			pcall(function() require("annotations.sidebar").refresh() end)
 			vim.notify("Annotations: removed annotation")
 			return
 		end
@@ -69,6 +70,7 @@ function M.add(hi_index)
 		then
 			storage.remove_annotation_by_position(filepath, ann.beg_line, ann.beg_col, ann.end_line, ann.end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
+			pcall(function() require("annotations.sidebar").refresh() end)
 			vim.notify("Annotations: removed containing annotation")
 			return
 		end
@@ -119,15 +121,21 @@ function M.add(hi_index)
 		})
 
 		reapply_all(0, storage.get_annotations_for_file(filepath))
+		pcall(function() require("annotations.sidebar").refresh() end)
 		vim.notify("Annotations: merged " .. #overlapping .. " annotation(s)")
 		return
 	end
 
 	highlight.setup_highlight_groups()
 	highlight.highlight_visual_selection(hi_index)
+	pcall(function() require("annotations.sidebar").refresh() end)
 end
 
-function M.show()
+function M.toggle(dir)
+	require("annotations.sidebar").toggle(dir)
+end
+
+function M.quickfix()
 	local filepath = vim.fn.expand("%:p")
 	local annotations = storage.get_annotations_for_file(filepath)
 	local qf_list = {}
@@ -150,6 +158,7 @@ function M.clear()
 
 	vim.api.nvim_buf_clear_namespace(0, 0, 0, -1)
 	storage.clear_annotations_for_file(filepath)
+	pcall(function() require("annotations.sidebar").refresh() end)
 	vim.notify("Annotations: cleared for " .. filepath)
 end
 
