@@ -31,11 +31,42 @@ local function set_options(opts)
 	end
 end
 
+local function setup_commands()
+	vim.api.nvim_create_user_command("AnnotationsAdd", function(opts)
+		require("annotations.main").add(opts.args ~= "" and opts.args or "0")
+	end, {
+		nargs = "?",
+		force = true,
+		complete = function()
+			return { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }
+		end,
+	})
+
+	vim.api.nvim_create_user_command("AnnotationsQuickfix", function()
+		require("annotations.main").quickfix()
+	end, { force = true })
+
+	vim.api.nvim_create_user_command("AnnotationsClear", function()
+		require("annotations.main").clear()
+	end, { force = true })
+
+	vim.api.nvim_create_user_command("AnnotationsToggle", function(opts)
+		require("annotations.main").toggle(opts.args)
+	end, {
+		nargs = "?",
+		force = true,
+		complete = function()
+			return { "left", "right" }
+		end,
+	})
+end
+
 function M.setup(opts)
 	if opts then
 		set_options(opts)
 	end
 
+	setup_commands()
 	require("annotations.highlight").setup_highlight_groups()
 
 	local group = vim.api.nvim_create_augroup("AnnotationsPlugin", { clear = true })
