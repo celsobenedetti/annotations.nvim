@@ -50,8 +50,8 @@ local function setup_commands()
 		require("annotations.main").clear()
 	end, { force = true })
 
-	vim.api.nvim_create_user_command("AnnotationsToggle", function(opts)
-		require("annotations.main").toggle(opts.args)
+	vim.api.nvim_create_user_command("AnnotationsSidebar", function(opts)
+		require("annotations.main").sidebar(opts.args)
 	end, {
 		nargs = "?",
 		force = true,

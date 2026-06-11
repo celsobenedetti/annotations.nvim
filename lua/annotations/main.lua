@@ -53,7 +53,9 @@ function M.add(hi_index)
 		then
 			storage.remove_annotation_by_position(filepath, beg_line, beg_col, end_line, end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
-			pcall(function() require("annotations.sidebar").refresh() end)
+			pcall(function()
+				require("annotations.sidebar").refresh()
+			end)
 			vim.notify("Annotations: removed annotation")
 			return
 		end
@@ -66,11 +68,18 @@ function M.add(hi_index)
 			and ann.end_line >= end_line
 			and (ann.beg_line < beg_line or ann.beg_col <= beg_col)
 			and (ann.end_line > end_line or ann.end_col >= end_col)
-			and not (ann.beg_line == beg_line and ann.beg_col == beg_col and ann.end_line == end_line and ann.end_col == end_col)
+			and not (
+				ann.beg_line == beg_line
+				and ann.beg_col == beg_col
+				and ann.end_line == end_line
+				and ann.end_col == end_col
+			)
 		then
 			storage.remove_annotation_by_position(filepath, ann.beg_line, ann.beg_col, ann.end_line, ann.end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
-			pcall(function() require("annotations.sidebar").refresh() end)
+			pcall(function()
+				require("annotations.sidebar").refresh()
+			end)
 			vim.notify("Annotations: removed containing annotation")
 			return
 		end
@@ -121,17 +130,21 @@ function M.add(hi_index)
 		})
 
 		reapply_all(0, storage.get_annotations_for_file(filepath))
-		pcall(function() require("annotations.sidebar").refresh() end)
+		pcall(function()
+			require("annotations.sidebar").refresh()
+		end)
 		vim.notify("Annotations: merged " .. #overlapping .. " annotation(s)")
 		return
 	end
 
 	highlight.setup_highlight_groups()
 	highlight.highlight_visual_selection(hi_index)
-	pcall(function() require("annotations.sidebar").refresh() end)
+	pcall(function()
+		require("annotations.sidebar").refresh()
+	end)
 end
 
-function M.toggle(dir)
+function M.sidebar(dir)
 	require("annotations.sidebar").toggle(dir)
 end
 
@@ -158,7 +171,9 @@ function M.clear()
 
 	vim.api.nvim_buf_clear_namespace(0, 0, 0, -1)
 	storage.clear_annotations_for_file(filepath)
-	pcall(function() require("annotations.sidebar").refresh() end)
+	pcall(function()
+		require("annotations.sidebar").refresh()
+	end)
 	vim.notify("Annotations: cleared for " .. filepath)
 end
 
