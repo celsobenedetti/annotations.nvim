@@ -3,6 +3,7 @@ local M = {}
 M.options = {
 	storage_path = nil,
 	sidebar_position = "left",
+	notify_level = vim.log.levels.INFO,
 	highlight_colors = {
 		color_0 = { "#f4d88c", "smart" },
 		color_1 = { "#9fd8ff", "smart" },

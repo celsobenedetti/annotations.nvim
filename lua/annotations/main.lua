@@ -1,4 +1,5 @@
 local M = {}
+local log = require("annotations.log")
 local storage = require("annotations.storage")
 local highlight = require("annotations.highlight")
 
@@ -34,7 +35,7 @@ function M.add(hi_index)
 
 	local _, beg_line, beg_col, _ = unpack(vim.fn.getpos("'<"))
 	if beg_line == 0 then
-		vim.notify("Annotations: no visual selection", vim.log.levels.WARN)
+		log.warn("Annotations: no visual selection")
 		return
 	end
 
@@ -56,7 +57,7 @@ function M.add(hi_index)
 			pcall(function()
 				require("annotations.sidebar").refresh()
 			end)
-			vim.notify("Annotations: removed annotation")
+			log.info("Annotations: removed annotation")
 			return
 		end
 	end
@@ -80,7 +81,7 @@ function M.add(hi_index)
 			pcall(function()
 				require("annotations.sidebar").refresh()
 			end)
-			vim.notify("Annotations: removed containing annotation")
+			log.info("Annotations: removed containing annotation")
 			return
 		end
 	end
@@ -133,7 +134,7 @@ function M.add(hi_index)
 		pcall(function()
 			require("annotations.sidebar").refresh()
 		end)
-		vim.notify("Annotations: merged " .. #overlapping .. " annotation(s)")
+		log.info("Annotations: merged " .. #overlapping .. " annotation(s)")
 		return
 	end
 
@@ -155,11 +156,11 @@ function M.toggle_highlights()
 	if vim.b[bufnr].annotations_hidden then
 		vim.b[bufnr].annotations_hidden = nil
 		M.restore()
-		vim.notify("Annotations: highlights visible")
+		log.info("Annotations: highlights visible")
 	else
 		vim.b[bufnr].annotations_hidden = true
 		vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-		vim.notify("Annotations: highlights hidden")
+		log.info("Annotations: highlights hidden")
 	end
 end
 
@@ -193,7 +194,7 @@ function M.clear()
 	pcall(function()
 		require("annotations.sidebar").refresh()
 	end)
-	vim.notify("Annotations: cleared for " .. filepath)
+	log.info("Annotations: cleared for " .. filepath)
 end
 
 function M.restore()
@@ -226,7 +227,7 @@ function M.restore()
 
 	if removed > 0 then
 		storage.save_annotations_for_file(filepath, valid)
-		vim.notify(string.format("Annotations: removed %d stale annotation(s)", removed))
+		log.warn(string.format("Annotations: removed %d stale annotation(s)", removed))
 	end
 end
 
