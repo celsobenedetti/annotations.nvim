@@ -4,6 +4,8 @@ local storage = require("annotations.storage")
 local highlight = require("annotations.highlight")
 local merge = require("annotations.merge")
 
+M.highlights_hidden = false
+
 local function reapply_all(bufnr, annotations)
 	vim.api.nvim_buf_clear_namespace(bufnr, highlight.get_namespace(), 0, -1)
 	for _, ann in ipairs(annotations) do
@@ -12,6 +14,8 @@ local function reapply_all(bufnr, annotations)
 end
 
 function M.add(hi_index)
+	M.highlights_hidden = false
+
 	hi_index = tonumber(hi_index) or 0
 
 	local _, beg_line, beg_col, _ = unpack(vim.fn.getpos("'<"))
@@ -78,7 +82,14 @@ function M.add(hi_index)
 	end
 
 	if #overlapping > 0 then
-		local merged = { beg_line = beg_line, beg_col = beg_col, end_line = end_line, end_col = end_col, text = "", hi_index = hi_index }
+		local merged = {
+			beg_line = beg_line,
+			beg_col = beg_col,
+			end_line = end_line,
+			end_col = end_col,
+			text = "",
+			hi_index = hi_index,
+		}
 		for _, ann in ipairs(overlapping) do
 			merged = merge.union(merged, ann)
 		end
@@ -110,12 +121,12 @@ function M.toggle_highlights()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local ns = highlight.get_namespace()
 
-	if vim.b[bufnr].annotations_hidden then
-		vim.b[bufnr].annotations_hidden = nil
+	if M.highlights_hidden then
+		M.highlights_hidden = false
 		M.restore()
 		log.info("Annotations: highlights visible")
 	else
-		vim.b[bufnr].annotations_hidden = true
+		M.highlights_hidden = true
 		vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 		log.info("Annotations: highlights hidden")
 	end
@@ -166,6 +177,10 @@ function M.restore()
 	end
 
 	local bufnr = vim.api.nvim_get_current_buf()
+	local ns = highlight.get_namespace()
+
+	vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+
 	local valid = {}
 	local removed = 0
 
@@ -179,8 +194,6 @@ function M.restore()
 			removed = removed + 1
 		end
 	end
-
-	vim.b[bufnr].annotations_hidden = nil
 
 	if removed > 0 then
 		storage.save_annotations_for_file(filepath, valid)

@@ -39,6 +39,12 @@ function M.open(dir)
 
 	source_bufnr = vim.api.nvim_get_current_buf()
 
+	local main = require("annotations.main")
+	if main.highlights_hidden then
+		main.highlights_hidden = false
+		main.restore()
+	end
+
 	if not (sidebar_bufnr and vim.api.nvim_buf_is_valid(sidebar_bufnr)) then
 		sidebar_bufnr = find_sidebar_buffer()
 	end

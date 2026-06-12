@@ -96,16 +96,35 @@ function M.setup(opts)
 		end
 	end
 
+	local is_valid_buffer = function()
+		return vim.bo.buftype == "" and vim.fn.expand("%:p") ~= ""
+	end
+
 	local group = vim.api.nvim_create_augroup("AnnotationsPlugin", { clear = true })
 
 	vim.api.nvim_create_autocmd("BufReadPost", {
 		group = group,
 		pattern = "*",
 		callback = function()
-			if vim.bo.buftype ~= "" then
+			if require("annotations.main").highlights_hidden or not is_valid_buffer() then
 				return
 			end
-			if vim.fn.expand("%:p") == "" then
+			vim.schedule(function()
+				require("annotations.main").restore()
+			end)
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = group,
+		pattern = "*",
+		callback = function()
+			if not is_valid_buffer() then
+				return
+			end
+			if require("annotations.main").highlights_hidden then
+				local ns = require("annotations.highlight").get_namespace()
+				vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
 				return
 			end
 			vim.schedule(function()
@@ -119,11 +138,20 @@ function M.setup(opts)
 		pattern = "*",
 		callback = function()
 			require("annotations.highlight").setup_highlight_groups()
+			if require("annotations.main").highlights_hidden then
+				return
+			end
 			vim.schedule(function()
 				require("annotations.main").restore()
 			end)
 		end,
 	})
+
+	vim.schedule(function()
+		if not require("annotations.main").highlights_hidden then
+			require("annotations.main").restore()
+		end
+	end)
 end
 
 return M
