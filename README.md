@@ -2,6 +2,12 @@
 
 Annotate (highlight) visually selected text in Neovim.
 
+<details>
+<summary>What are annotations?</summary>
+    Really, they are actually _"highlights"_, as in _"highlighted text"_.
+    I use the _"annotations"_ terminology in this plugin since _"highlights"_ mean something else in Neovim (`:h hi`).
+</details>
+
 ## features
 
 - Annotate visually selected text
@@ -14,28 +20,21 @@ Annotate (highlight) visually selected text in Neovim.
 - Send all annotations for the current file to the quickfix list (`AnnotationsQuickfix`).
 - Toggle highlight visibility without altering stored annotations (`AnnotationsToggle`).
 - Clear all annotations for the current file (`AnnotationsClear`).
-- [ ] `nvim-mini/mini.ai` integration, "annotation" text object.
+- [nvim-mini/mini.ai](https://github.com/nvim-mini/mini.ai) integration: custom _annotations_ (`h`) textobject. Auto-detected if `mini.ai` is installed.
 
 ## setup
+
+See [init.lua](https://github.com/celsobenedetti/annotations.nvim/blob/main/lua/annotations/init.lua) for configuration options.
 
 ```lua
 
 {
     'celsobenedetti/annotations.nvim',
     config = function()
-    require('annotations').setup({
-        -- defaults
-        storage_path = vim.fn.stdpath('data') .. '/annotations.json',
-        sidebar_position = 'left',
-        highlight_colors = { -- colors from goated default neovim colorscheme
-        notify_level = vim.log.levels.INFO,
-        color_0 = { '#f4d88c', 'smart' }, -- "smart" for auto bg/fg contrast calculation
-        -- ...
-        },
-    })
+        require("annotations").setup() -- see options and defaults in init.lua
     end,
     keys = {
-    { '<leader>h', ':<c-u>AnnotationsAdd<CR>', mode = 'x' },
+        { '<leader>h', ':<c-u>AnnotationsAdd<CR>', mode = 'x' },
     },
 }
 ```

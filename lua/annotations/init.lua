@@ -1,10 +1,11 @@
 local M = {}
 
-M.options = {
+local DEFAULT_OPTIONS = {
 	storage_path = nil,
 	sidebar_position = "left",
 	notify_level = vim.log.levels.INFO,
 	highlight_colors = {
+		-- colors from goated neovim default colorscheme
 		color_0 = { "#f4d88c", "smart" },
 		color_1 = { "#9fd8ff", "smart" },
 		color_2 = { "#83efef", "smart" },
@@ -16,7 +17,15 @@ M.options = {
 		color_8 = { "#ffc3fa", "smart" },
 		color_9 = { "#ffbcb5", "smart" },
 	},
+	integrations = {
+		["mini.ai"] = {
+			enable = true,
+			text_object = "h",
+		},
+	},
 }
+
+M.options = DEFAULT_OPTIONS
 
 local function set_options(opts)
 	for k, v in pairs(opts) do
@@ -77,6 +86,15 @@ function M.setup(opts)
 
 	setup_commands()
 	require("annotations.highlight").setup_highlight_groups()
+
+	if M.options.integrations["mini.ai"].enable ~= false then
+		local ok = pcall(require, "mini.ai")
+		if ok then
+			pcall(function()
+				require("annotations.integrations.mini-ai").setup(M.options.integrations["mini.ai"])
+			end)
+		end
+	end
 
 	local group = vim.api.nvim_create_augroup("AnnotationsPlugin", { clear = true })
 
