@@ -1,4 +1,5 @@
 local M = {}
+local merge = require("annotations.merge")
 
 local function get_storage_path()
   local config = require("annotations").options
@@ -37,13 +38,14 @@ function M.add_annotation(filepath, annotation)
     data[filepath] = {}
   end
   table.insert(data[filepath], annotation)
+  data[filepath] = merge.deduplicate(data[filepath])
   save(data)
 end
 
 function M.save_annotations_for_file(filepath, annotations)
   local data = load()
   if #annotations > 0 then
-    data[filepath] = annotations
+    data[filepath] = merge.deduplicate(annotations)
   else
     data[filepath] = nil
   end

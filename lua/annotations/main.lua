@@ -2,26 +2,7 @@ local M = {}
 local log = require("annotations.log")
 local storage = require("annotations.storage")
 local highlight = require("annotations.highlight")
-
-local function col_start(ann, line)
-	return ann.beg_line == line and ann.beg_col or 1
-end
-
-local function col_end(ann, line)
-	return ann.end_line == line and ann.end_col or math.huge
-end
-
-local function ranges_overlap(a, b)
-	local ob = math.max(a.beg_line, b.beg_line)
-	local oe = math.min(a.end_line, b.end_line)
-	if ob > oe then
-		return false
-	end
-	if ob == oe then
-		return math.max(col_start(a, ob), col_start(b, ob)) <= math.min(col_end(a, ob), col_end(b, ob))
-	end
-	return true
-end
+local merge = require("annotations.merge")
 
 local function reapply_all(bufnr, annotations)
 	vim.api.nvim_buf_clear_namespace(bufnr, highlight.get_namespace(), 0, -1)
@@ -89,7 +70,7 @@ function M.add(hi_index)
 	local overlapping = {}
 	local non_overlapping = {}
 	for _, ann in ipairs(annotations) do
-		if ranges_overlap(new_range, ann) then
+		if merge.ranges_overlap(new_range, ann) then
 			table.insert(overlapping, ann)
 		else
 			table.insert(non_overlapping, ann)
@@ -97,38 +78,14 @@ function M.add(hi_index)
 	end
 
 	if #overlapping > 0 then
-		local merged_beg_line = beg_line
-		local merged_beg_col = beg_col
-		local merged_end_line = end_line
-		local merged_end_col = end_col
-
+		local merged = { beg_line = beg_line, beg_col = beg_col, end_line = end_line, end_col = end_col, text = "", hi_index = hi_index }
 		for _, ann in ipairs(overlapping) do
-			if ann.beg_line < merged_beg_line then
-				merged_beg_line = ann.beg_line
-				merged_beg_col = ann.beg_col
-			elseif ann.beg_line == merged_beg_line then
-				merged_beg_col = math.min(merged_beg_col, ann.beg_col)
-			end
-
-			if ann.end_line > merged_end_line then
-				merged_end_line = ann.end_line
-				merged_end_col = ann.end_col
-			elseif ann.end_line == merged_end_line then
-				merged_end_col = math.max(merged_end_col, ann.end_col)
-			end
+			merged = merge.union(merged, ann)
 		end
-
-		local merged_text = highlight.get_text(0, merged_beg_line, merged_beg_col, merged_end_line, merged_end_col)
+		merged.text = highlight.get_text(0, merged.beg_line, merged.beg_col, merged.end_line, merged.end_col)
 
 		storage.save_annotations_for_file(filepath, non_overlapping)
-		storage.add_annotation(filepath, {
-			beg_line = merged_beg_line,
-			beg_col = merged_beg_col,
-			end_line = merged_end_line,
-			end_col = merged_end_col,
-			text = merged_text,
-			hi_index = hi_index,
-		})
+		storage.add_annotation(filepath, merged)
 
 		reapply_all(0, storage.get_annotations_for_file(filepath))
 		pcall(function()
