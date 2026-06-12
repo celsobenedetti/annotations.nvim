@@ -1,7 +1,7 @@
 local M = {}
 
 local DEFAULT_OPTIONS = {
-	storage_path = nil,
+	storage_path = vim.fn.stdpath("data") .. "/annotations.json",
 	sidebar_position = "left",
 	notify_level = vim.log.levels.INFO,
 	highlight_colors = {

@@ -1,11 +1,14 @@
 # annotations.nvim
 
-Annotate (highlight) visually selected text in Neovim.
+Annotate (<mark>highlight</mark>) visually selected text in Neovim.
 
 <details>
 <summary>What are annotations?</summary>
-    Really, they are actually _"highlights"_, as in _"highlighted text"_.
-    I use the _"annotations"_ terminology in this plugin since _"highlights"_ mean something else in Neovim (`:h hi`).
+
+Really, they are actually _"highlights"_, as in _<mark>"highlighted text"</mark>_.
+
+I call them _"annotations"_ since _"highlights"_ mean something else in Neovim (`:h hi`).
+
 </details>
 
 ## features
