@@ -77,6 +77,10 @@ local function setup_commands()
 	vim.api.nvim_create_user_command("AnnotationsToggle", function()
 		require("annotations.main").toggle_highlights()
 	end, { force = true })
+
+	vim.api.nvim_create_user_command("AnnotationsUndo", function()
+		require("annotations.main").undo()
+	end, { force = true })
 end
 
 function M.setup(opts)

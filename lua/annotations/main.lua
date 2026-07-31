@@ -6,6 +6,21 @@ local merge = require("annotations.merge")
 
 M.highlights_hidden = false
 
+local MAX_UNDO = 100
+local undo_stacks = {}
+
+local function push_undo(filepath, annotations)
+	local stack = undo_stacks[filepath]
+	if not stack then
+		stack = {}
+		undo_stacks[filepath] = stack
+	end
+	table.insert(stack, vim.deepcopy(annotations))
+	if #stack > MAX_UNDO then
+		table.remove(stack, 1)
+	end
+end
+
 local function reapply_all(bufnr, annotations)
 	vim.api.nvim_buf_clear_namespace(bufnr, highlight.get_namespace(), 0, -1)
 	for _, ann in ipairs(annotations) do
@@ -37,6 +52,7 @@ function M.add(hi_index)
 			and ann.end_line == end_line
 			and ann.end_col == end_col
 		then
+			push_undo(filepath, annotations)
 			storage.remove_annotation_by_position(filepath, beg_line, beg_col, end_line, end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
 			pcall(function()
@@ -61,6 +77,7 @@ function M.add(hi_index)
 				and ann.end_col == end_col
 			)
 		then
+			push_undo(filepath, annotations)
 			storage.remove_annotation_by_position(filepath, ann.beg_line, ann.beg_col, ann.end_line, ann.end_col)
 			reapply_all(0, storage.get_annotations_for_file(filepath))
 			pcall(function()
@@ -95,6 +112,7 @@ function M.add(hi_index)
 		end
 		merged.text = highlight.get_text(0, merged.beg_line, merged.beg_col, merged.end_line, merged.end_col)
 
+		push_undo(filepath, annotations)
 		storage.save_annotations_for_file(filepath, non_overlapping)
 		storage.add_annotation(filepath, merged)
 
@@ -106,6 +124,7 @@ function M.add(hi_index)
 		return
 	end
 
+	push_undo(filepath, annotations)
 	highlight.setup_highlight_groups()
 	highlight.highlight_visual_selection(hi_index)
 	pcall(function()
@@ -157,12 +176,34 @@ end
 function M.clear()
 	local filepath = vim.fn.expand("%:p")
 
+	push_undo(filepath, storage.get_annotations_for_file(filepath))
 	vim.api.nvim_buf_clear_namespace(0, highlight.get_namespace(), 0, -1)
 	storage.clear_annotations_for_file(filepath)
 	pcall(function()
 		require("annotations.sidebar").refresh()
 	end)
 	log.info("Annotations: cleared for " .. filepath)
+end
+
+function M.undo()
+	local filepath = vim.fn.expand("%:p")
+	if filepath == "" then
+		return
+	end
+
+	local stack = undo_stacks[filepath]
+	if not stack or #stack == 0 then
+		log.info("Annotations: nothing to undo")
+		return
+	end
+
+	local previous = table.remove(stack)
+	storage.save_annotations_for_file(filepath, previous)
+	reapply_all(0, storage.get_annotations_for_file(filepath))
+	pcall(function()
+		require("annotations.sidebar").refresh()
+	end)
+	log.info("Annotations: undone")
 end
 
 function M.restore()

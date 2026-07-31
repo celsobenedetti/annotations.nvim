@@ -20,6 +20,7 @@ I call them _"annotations"_ since _"highlights"_ mean something else in Neovim (
 - Auto-restore highlights when opening a file 
     - verifies text+position match, prunes stale annotations.
 - Sidebar listing all annotations for the current buffer (`AnnotationsSidebar`), multi-line support with thin separator, `<CR>` jumps to source.
+- Undo the last annotation action (add/remove/merge/clear) per file (`AnnotationsUndo`).
 - Send all annotations for the current file to the quickfix list (`AnnotationsQuickfix`).
 - Toggle highlight visibility without altering stored annotations (`AnnotationsToggle`).
 - Clear all annotations for the current file (`AnnotationsClear`).
@@ -49,6 +50,7 @@ See [init.lua](https://github.com/celsobenedetti/annotations.nvim/blob/main/lua/
 - `AnnotationsClear` to clear all annotations for the current buffer.
 - `AnnotationsQuickfix` to send all annotations for the current buffer to the quickfix list.
 - `AnnotationsSidebar` to open a sidebar listing all annotations for the current buffer.
+- `AnnotationsUndo` to undo the last annotation action (add/remove/merge/clear) for the current buffer.
 
 ## references
 
